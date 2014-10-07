@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <title>Plots</title>
+</head>
+<body>
+    <div class="container">
+        <h1>The Plotter</h1>
+        <canvas width="500" height="500" id="graphplot">Your browser does not support HTML 5 -- get Chrome.</canvas>
+    </div>
+    <div class="container">
+        <p>Amount of points: <input type="text" class="input-sm" id="amt"/></p>
+        <span id="values"></span>
+
+        <span id="vals"></span>
+    </div>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+    <!-- Code for page JQuery -->
+    <script>
+        number_box = $("#amt");
+        var value = 0;
+
+        points = [];
+
+        number_box.change(function() {
+            console.log(number_box.val());
+            value = Number(number_box.val());
+            if(value != NaN) {
+                var values_area = document.getElementById("values");
+                values_area.innerHTML = "";
+                for(var i = 0; i < value; i++) {
+                    values_area.innerHTML+='<p>X: <input type="text" class="input-sm" id="x_'.concat(i).concat('"/>&nbsp;&nbsp;&nbsp;&nbsp;Y: <input type="text" class="input-sm" id="y_').concat(i).concat('"/></p>');
+
+                    points[i] = {
+                        x: 0,
+                        y: 0
+                    };
+
+                    $("#x_"+i).change(function() {
+                        console.log(5);
+                        points[i].x = Number($(this).val());
+                    });
+                    $("#y_"+i).change(function() {
+                        points[i].y = Number($(this).val());
+                    });
+                }
+            }
+        });
+
+        vals = document.getElementById("vals");
+
+        setInterval(function() {
+            vals.innerHTML = "";
+            for(var i = 0; i < value; i++) {
+                vals.innerHTML+= "X: " + points[i].x + " Y: "+ points[i].y + "<br />";
+            }
+        }, 250);
+
+        c = document.getElementById("graphplot");
+        ctx = c.getContext("2d");
+
+        ctx.fillStyle = "#FF0000";
+        ctx.fillRect(0,0,500,500);
+    </script>
+
+    <script src="js/bootstrap.min.js"></script>
+</body>
+</html>
