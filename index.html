@@ -11,13 +11,13 @@
         <canvas width="650" height="500" id="graphplot">Your browser does not support HTML 5 -- get Chrome.</canvas>
     </div>
     <div class="container">
-        <p>Amount of points: <input type="text" class="input-sm" id="amt"/></p>
+        <p>Amount of points: <input type="text" class="input-sm" id="amt" style="width:4em" maxlength="2"/>
+           Gridlines: <input type="text" class="input-sm" id="lines" style="width:4em" maxlength="2"/></p>
         <span id="values"></span>
     </div>
 
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="js/sprintf.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
     <!-- Code for page JQuery -->
     <script>
@@ -25,15 +25,55 @@
         var oldval = 0;
         var points = [];
 
+        /**
+         * Re-maps a number from one range to another.
+         *
+         * @see https://github.com/processing/processing/blob/master/core/src/processing/core/PApplet.java
+         *
+         * Numbers outside the range are not clamped to 0 and 1, because
+         * out-of-range values are often intentional and useful.
+         *
+         * @param value the incoming value to be converted
+         * @param low1 lower bound of the value's current range
+         * @param high1 upper bound of the value's current range
+         * @param low2 lower bound of the value's target range
+         * @param high2 upper bound of the value's target range
+         * @returns The converted value
+         */
+        function map(value, low1, high1, low2, high2) {
+            return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+        }
+        /**
+         * Very specific funtion to get the largest of the x-values in the data
+         */
+        function getLargestX() {
+            var largest = 0;
+            for(var i = 0; i < value; i++) {
+                if(points[i].x > largest) {
+                    largest = points[i].x;
+                }
+            }
+            return largest;
+        }
+        /**
+         * Very specific funtion to get the largest of the y-values in the data
+         */
+        function getLargestY() {
+            var largest = 0;
+            for(var i = 0; i < value; i++) {
+                if(points[i].y > largest) {
+                    largest = points[i].y;
+                }
+            }
+            return largest;
+        }
         function update_values_amount() {
             var number_box = document.getElementById("amt");
-            value = Number(number_box.value) <=45 ? Number(number_box.value) : 45;
+            value = Number(number_box.value);
             if(value != oldval) {
                 var values_area = document.getElementById("values");
                 values_area.innerHTML = "";
                 for (var i = 0; i < value; i++) {
-
-
                     if(typeof points[i] === 'undefined') {
                         values_area.innerHTML += '<p>X: <input type="text" class="input-sm" id="x_' + i + '"/>&nbsp;&nbsp;&nbsp;&nbsp;Y: <input type="text" class="input-sm" id="y_' + i + '"/></p>';
                         points[i] = {
@@ -43,12 +83,10 @@
                     } else {
                         values_area.innerHTML += '<p>X: <input type="text" value="'+points[i].x+'" class="input-sm" id="x_' + i + '"/>&nbsp;&nbsp;&nbsp;&nbsp;Y: <input type="text" value="'+points[i].y+'" class="input-sm" id="y_' + i + '"/></p>';
                     }
-
                 }
             }
             oldval = value;
-        };
-
+        }
         setInterval(function() {
             update_values_amount();
             for(var j = 0; j < value; j++) {
@@ -59,24 +97,62 @@
                 points[j].y = Number(ydom.value);
             }
         }, 100);
-
-        //draw code
-
+        function drawLine(x1, y1, x2, y2) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+        // Draw code
         c = document.getElementById("graphplot");
         ctx = c.getContext("2d");
 
         setInterval(function() {
-            ctx.fillStyle = "#aaaaaa";
+            // Clear screen
+            ctx.fillStyle = "#eeeeee";
             ctx.fillRect(0,0,650,500);
 
-            for(var i = 0; i < value; i++) {
-                ctx.fillStyle = "#000000"
-                ctx.fillRect(points[i].x-5,500-points[i].y-5,10,10);
-            }
-        }, 100);
+            // Figure out the largest of all the x's and y's
+            var max_x = getLargestX();
+            var max_y = getLargestY();
 
-        ctx.fillStyle = "#000000";
-        ctx.fillText("Graph Goes Here", 280, 230);
+            var lines = Number(document.getElementById("lines").value);
+
+            // Draw the grid lines and coordinate text
+            ctx.strokeStyle = "#888888";
+            ctx.fillStyle = "#000000";
+            for(var i = 1; i <= lines; i++) {
+                pos_ind = i/lines;
+                //x
+                pos_x = Math.round(50 + 550 * pos_ind);
+
+                drawLine(pos_x, 0, pos_x, 450);
+                ctx.fillText(max_x/lines * i, pos_x, 475);
+                //y
+                pos_y = 500 - Math.round(50 + 400 * pos_ind);
+
+                drawLine(650, pos_y, 50, pos_y);
+
+                ctx.fillText(max_y/lines * i, 25, pos_y);
+            }
+
+            // Draw edges of graph
+            ctx.strokeStyle = "#000000";
+            drawLine(50, 0, 50, 500);
+            drawLine(0, 450, 650, 450);
+
+            // Draw all points in graph
+            ctx.fillStyle = "#ff0000";
+            for(i = 0; i < value; i++) {
+                // Figure out the coordinate plane x and y of each point
+                var x = map(points[i].x, 0, max_x, 50, 600);
+                var y = map(points[i].y, 0, max_y, 50, 450);
+                // Draw the circle for the point
+                ctx.beginPath();
+                ctx.arc(x,500-y,5,0,2*Math.PI);
+                ctx.fill();
+            }
+        }, 100 /*Repeat every 100ms*/);
     </script>
 
     <script src="js/bootstrap.min.js"></script>
