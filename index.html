@@ -11,8 +11,11 @@
         <canvas width="650" height="500" id="graphplot">Your browser does not support HTML 5 -- get Chrome.</canvas>
     </div>
     <div class="container">
-        <p>Amount of points: <input type="text" class="input-sm" id="amt" style="width:4em" maxlength="2"/>
-           Gridlines: <input type="text" class="input-sm" id="lines" style="width:4em" maxlength="2"/></p>
+        <p>Amount of points: <input type="text" class="input-sm" id="amt" style="width:3em" maxlength="2"/>
+           Gridlines: <input type="text" class="input-sm" id="lines" style="width:3em" maxlength="2"/>
+           Line of best fit equation: y = <input type="text" class="input-sm" id="slope" style="width:4em" maxlength="3"/>x^<input type="text" class="input-sm" id="expon" style="width:4em" maxlength="3"/>+<input type="text" class="input-sm" id="y_int" style="width:5em" maxlength="4"/>
+        <br/>
+        Points:
         <span id="values"></span>
     </div>
 
@@ -38,7 +41,7 @@
          * @param high1 upper bound of the value's current range
          * @param low2 lower bound of the value's target range
          * @param high2 upper bound of the value's target range
-         * @returns The converted value
+         * @returns number The converted value
          */
         function map(value, low1, high1, low2, high2) {
             return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
@@ -152,7 +155,21 @@
                 ctx.arc(x,500-y,5,0,2*Math.PI);
                 ctx.fill();
             }
+            //Line
+            ctx.strokeStyle = "#"
+            ctx.beginPath();
+            ctx.moveTo(50, map(Number(document.getElementById("y_int").value), 0, max_y, 450, 50));
+            for(i = 50; i < 600; i++) {
+                var x = map(i, 50, 600, 0, max_x);
+                var y = Number(document.getElementById("slope").value) * Math.pow(x,Number(document.getElementById("expon").value)) + Number(document.getElementById("y_int").value);
+                y = map(y, 0, max_y, 450, 50);
+
+                ctx.lineTo(i, y);
+
+            }
+            ctx.stroke();
         }, 100 /*Repeat every 100ms*/);
+
     </script>
 
     <script src="js/bootstrap.min.js"></script>
